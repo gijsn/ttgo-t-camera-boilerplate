@@ -5,9 +5,9 @@
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 // INFO: you can set CAMERA_FRAME_SIZE to FRAMESIZE_HQVGA in app_camera.h
+// INFO: you can set CAMERA_PIXEL_FORMAT to PIXFORMAT_RGB565 in app_camera.h
 #define PREVIEW_W 240
 #define PREVIEW_H 176
-// INFO: you can set CAMERA_PIXEL_FORMAT to PIXFORMAT_RGB565 in app_camera.h
 
 #define TFT_W 240
 #define TFT_H 240
@@ -35,7 +35,6 @@ unsigned long lastMillis = 0;
 uint16_t *rgbBitmap = new uint16_t[PREVIEW_W * PREVIEW_H];
 
 void loop() {
-  delay(100);
   camera_fb_t *fb = esp_camera_fb_get();
   if (fb) {
     // convert array of uint8_t to uint16_t (RGB565)

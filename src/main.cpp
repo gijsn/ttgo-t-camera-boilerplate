@@ -17,7 +17,7 @@ void decodeJpegBuff(uint8_t arrayname[], uint32_t array_size, uint8_t scale);
 void decodeJpegFile(char filename[], uint8_t scale);
 
 #define SDCARA_CS 0
-#define SNAP_QUALITY 5  // 1-63, 1 is the best
+#define SNAP_QUALITY 3 // 1-63, 1 is the best
 
 ST7789 tft = ST7789();  // Invoke library, pins defined in User_Setup.h
 
@@ -107,8 +107,9 @@ void setup() {
   s->set_denoise(s, true);
   s->set_lenc(s, true);
   s->set_hmirror(s, true);
+  s->set_awb_gain(s, false);
   // s->set_vflip(s, true);
-  s->set_quality(s, 63);
+  s->set_quality(s, SNAP_QUALITY);
 
   preview = new uint16_t[200 * 150];
   work = (char *)malloc(WORK_BUF_SIZE);
@@ -142,9 +143,9 @@ esp_err_t cam_init() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
   // init with high specs to pre-allocate larger buffers
-  config.frame_size = FRAMESIZE_UXGA;
+  config.frame_size = FRAMESIZE_HD;
   config.jpeg_quality = SNAP_QUALITY;
-  config.fb_count = 2;
+  config.fb_count = 1;
 
   // camera init
   return esp_camera_init(&config);
@@ -172,13 +173,13 @@ void init_folder() {
 void snap() {
   s->set_hmirror(s, false);
   // s->set_vflip(s, false);
-  s->set_quality(s, SNAP_QUALITY);
+  // s->set_quality(s, SNAP_QUALITY);
 
   tft.fillRect(20, 45, 200, 150, TFT_DARKGREY);
 
-  fb = esp_camera_fb_get();
-  esp_camera_fb_return(fb);
-  fb = NULL;
+  // fb = esp_camera_fb_get();
+  // esp_camera_fb_return(fb);
+  // fb = NULL;
 
   tft.fillRect(20, 45, 200, 150, TFT_LIGHTGREY);
 
@@ -189,10 +190,17 @@ void snap() {
   }
   strftime(nextFilename, sizeof(nextFilename), "/DCIM/100ESPDC/%Y-%m-%d_%H-%M-%S.jpg", &timeinfo);
   Serial.println(nextFilename);
-  if (!fb) {
+  int i = 0;
+  while (!fb) {
     tft.drawString("Camera capture JPG failed", 0, 208);
     Serial.println("Camera capture JPG failed");
-  }else 
+    i++;
+    fb = esp_camera_fb_get();
+    if(i > 10){
+      break;
+    }
+  }
+  if(fb) 
   {
     File file = SD.open(nextFilename, FILE_WRITE);
     if (file.write(fb->buf, fb->len)) {
@@ -211,7 +219,7 @@ void snap() {
 
   s->set_hmirror(s, false);
   // s->set_vflip(s, true);
-  s->set_quality(s, 63);
+  // s->set_quality(s, 63);
   fb = esp_camera_fb_get();
   esp_camera_fb_return(fb);
   fb = NULL;
@@ -265,7 +273,7 @@ void loop() {
 
     Serial.println("Enter deep sleep...");
     delay(10000); // delay 10 seconds to view photo
-    enterSleep();
+    //enterSleep();
   }
   // fb = esp_camera_fb_get();
   // if (!fb) {
